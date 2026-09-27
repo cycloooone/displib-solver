@@ -8,15 +8,15 @@ Naive route building by selecting FIRST successor from the list
 def build_naive_route(train):
     route = [0]
     index = 0
-    while train[index]['successors']:
+    while train[index]['successors']:     # last operation has no successors
         index = train[index]['successors'][0]
         route.append(index)
     return route
 
 
-def get_departure_time(train_id, train_current_operation, resource_avaiable_time, train_prev_time, train_prev_duration):
-    resources = train_current_operation.get('resources', [])
-    time = max(train_current_operation.get('start_lb', 0), train_prev_time + train_prev_duration)
+def get_departure_time(train_id, operation, resource_avaiable_time, train_prev_time, train_prev_duration):
+    resources = operation.get('resources', [])
+    time = max(operation.get('start_lb', 0), train_prev_time + train_prev_duration)
     for resource in resources:
         resource_index = resource['resource']
         resource_time_info = resource_avaiable_time.get(resource_index, (0, 0))
@@ -25,7 +25,7 @@ def get_departure_time(train_id, train_current_operation, resource_avaiable_time
     return time
 
 def depart_train(trains, routes, free_at, position, last_time):
-    min_time = 1e9
+    min_time = float('inf')
     winner = -1
 
     for i, train in enumerate(trains):
@@ -40,6 +40,8 @@ def depart_train(trains, routes, free_at, position, last_time):
             prev_duration = train[prev_op_index].get('min_duration', 0)
 
         t = get_departure_time(i, train[op_index], free_at, last_time[i], prev_duration)
+        if t > 1e9:
+            print(t)
         if t < min_time:
             min_time = t
             winner = i
@@ -49,6 +51,19 @@ def depart_train(trains, routes, free_at, position, last_time):
 
     if winner == -1:
         print("no winner; positions:", position, "route lengths:", [len(r) for r in routes])
+        print('r5 ->', free_at.get('r5'))
+        print('r6 ->', free_at.get('r6'))
+        for i, ind in enumerate(position):
+            if ind < len(routes[i]) - 1:
+                print(i, routes[i][ind])
+                print(trains[i][routes[i][ind]])
+                print()
+            else:
+                print(i, routes[i][ind - 1])
+                print(trains[i][routes[i][ind - 1]])
+                print('finished')
+                print()
+                
         return (0, {})
     pos = position[winner]
     position[winner] = pos + 1
