@@ -15,3 +15,4 @@ them in `problems/`, `displib_verify.py`, and `solutions/`.
 ## Files
 - `look.py` — solver and batch runner
 - `check.py` — runs the official verifier across all instances
+- `milp.py` — MILP implementation from DISPLIB paper
