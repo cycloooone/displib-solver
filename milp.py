@@ -86,19 +86,35 @@ def solve(path):
         m.addConstr(w[k] >= objs[k]['coeff'] * (t[(tr, op)] - objs[k]['threshold']))
 
 
-    # todo: flow constraint in == out
+    for (tr, op) in tr_ops:
+        if len(trains[tr][op]['sucs']) == 0 or len(prev_ops[(tr, op)]) == 0:
+            continue
+        prev = prev_ops[(tr, op)]
+        post = trains[tr][op]['sucs']
+        # prev - list of previous operations, post - list of successor operations
+        m.addConstr(gp.quicksum(y[tr, prev_op, op] for prev_op in prev) == gp.quicksum(y[tr, op, post_op] for post_op in post)) 
+
+    # todo: Resource access constraints
+
 
     m.setObjective(gp.quicksum(w[i] for i in range(len(objs))), GRB.MINIMIZE)
 
     m.optimize()
 
+    def save_solution(path, m, tr_ops, tr_op_sucs, x, y, t):
+        sol = {
+            "status": m.Status,
+            "objective": m.ObjVal,
+            "x": [[tr, op, round(t[(tr, op)].X)]
+                for (tr, op) in tr_ops if x[(tr, op)].X > 0.5],
+            "y": [[tr, a, b]
+                for (tr, a, b) in tr_op_sucs if y[(tr, a, b)].X > 0.5],
+        }
+        with open(path, "w") as f:
+            json.dump(sol, f)
+
     if m.Status == GRB.OPTIMAL:
-        for (tr, op) in tr_ops:
-            if x[(tr,op)].X > 0.5:
-                print(x[(tr,op)], t[(tr, op)])
-        for (tr, op, suc) in tr_op_sucs:
-            if y[(tr, op, suc)].X > 0.5:
-                print(y[(tr, op, suc)])
+        save_solution("solution.json", m, tr_ops, tr_op_sucs, x, y, t)
     elif m.Status == GRB.INFEASIBLE:
         print('🚨 ERROR: The model is mathematically impossible (Infeasible). Check your constraints!')
     
