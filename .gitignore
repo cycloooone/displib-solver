@@ -7,3 +7,5 @@ mine.json
 venv
 broken.json
 .DS_Store
+viz_out/
+solution.json
