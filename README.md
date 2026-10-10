@@ -16,3 +16,4 @@ them in `problems/`, `displib_verify.py`, and `solutions/`.
 - `look.py` — solver and batch runner
 - `check.py` — runs the official verifier across all instances
 - `milp.py` — MILP implementation from DISPLIB paper
+- `milp2.py` — updated faster MILP implementation
